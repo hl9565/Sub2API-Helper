@@ -47,7 +47,7 @@ test('mail polling handlers and cleanup handlers are not wrapped by operation de
     'content/qq-mail.js': ['handlePollEmail', 'refreshInbox'],
     'content/icloud-mail.js': ['openMailItemAndRead', 'refreshInbox', 'handlePollEmail'],
     'content/mail-2925.js': ['handlePollEmail', 'openMailAndGetMessageText', 'deleteCurrentMailboxEmail', 'openMailAndDeleteAfterRead', 'deleteAllMailboxEmails', 'refreshInbox'],
-    'content/gmail-mail.js': ['refreshInbox', 'openRowAndGetMessageText', 'handlePollEmail'],
+    'content/gmail-mail.js': ['refreshInbox', 'openRowAndGetMessageText', 'openRowAndGetMessageTextWithRetry', 'handlePollEmail'],
     'content/inbucket-mail.js': ['refreshMailbox', 'openMailboxEntry', 'deleteCurrentMailboxMessage', 'handlePollEmail'],
   };
 
@@ -75,6 +75,30 @@ test('mail polling bundles do not load operation delay module', () => {
     const bundle = manifest.content_scripts.find((entry) => entry.js.includes(file))?.js || [];
     assert.equal(bundle.includes('content/operation-delay.js'), false, `${file} bundle must not include operation delay`);
   }
+});
+
+test('Gmail polling only scans Primary and never switches to Updates', () => {
+  const source = fs.readFileSync('content/gmail-mail.js', 'utf8');
+  const scanOrder = extractFunction(source, 'getCategoryScanOrder');
+
+  assert.match(scanOrder, /key === 'primary'/);
+  assert.doesNotMatch(scanOrder, /getSelectedCategoryKey/);
+  assert.doesNotMatch(scanOrder, /getUnreadCountForCategory/);
+  assert.doesNotMatch(scanOrder, /'updates'/);
+  assert.doesNotMatch(scanOrder, /const ordered = \['updates', 'primary'\]/);
+});
+
+test('Gmail polling retries opening the same message before skipping it', () => {
+  const source = fs.readFileSync('content/gmail-mail.js', 'utf8');
+  const retryFunction = extractFunction(source, 'openRowAndGetMessageTextWithRetry');
+  const pollFunction = extractFunction(source, 'handlePollEmail');
+
+  assert.match(source, /const GMAIL_OPEN_ROW_MAX_RETRIES = 3/);
+  assert.match(retryFunction, /attempt <= attempts/);
+  assert.match(retryFunction, /openRowAndGetMessageText\(row\)/);
+  assert.match(retryFunction, /打开 Gmail 邮件正文失败/);
+  assert.match(pollFunction, /openRowAndGetMessageTextWithRetry\(row,\s*step\)/);
+  assert.match(pollFunction, /多次打开 Gmail 邮件正文失败/);
 });
 
 test('WhatsApp code reader remains polling-only and delay-free', () => {

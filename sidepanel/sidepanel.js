@@ -439,6 +439,7 @@ const cfDomainMenu = document.getElementById('cf-domain-menu');
 const inputCfDomain = document.getElementById('input-cf-domain');
 const btnCfDomainMode = document.getElementById('btn-cf-domain-mode');
 const inputRunCount = document.getElementById('input-run-count');
+const labelRunCount = document.getElementById('label-run-count');
 const inputAutoSkipFailures = document.getElementById('input-auto-skip-failures');
 const inputAutoSkipFailuresThreadIntervalMinutes = document.getElementById('input-auto-skip-failures-thread-interval-minutes');
 const inputStep6CookieCleanupEnabled = document.getElementById('input-step6-cookie-cleanup-enabled');
@@ -1581,7 +1582,10 @@ function lockSub2ApiHelperUi() {
     inputPlusModeEnabled.checked = false;
   }
   if (inputRunCount) {
-    inputRunCount.value = '1';
+    inputRunCount.hidden = false;
+  }
+  if (labelRunCount) {
+    labelRunCount.hidden = false;
   }
   [
     document.getElementById('row-flow-selector'),
@@ -1603,7 +1607,6 @@ function lockSub2ApiHelperUi() {
     rowInbucketHost,
     rowInbucketMailbox,
     document.getElementById('row-step6-cookie-settings'),
-    document.getElementById('row-shared-auto-run'),
     document.getElementById('row-auto-run-thread-interval'),
     rowStepExecutionRange,
     document.getElementById('row-settings-actions'),
@@ -1630,6 +1633,7 @@ function lockSub2ApiHelperUi() {
     rowPhoneCodeWaitSeconds,
     rowPhoneCodePollIntervalSeconds,
     rowPhoneCodePollMaxRounds,
+    document.getElementById('row-shared-auto-run'),
     document.getElementById('row-oauth-display'),
     document.getElementById('row-oauth-callback'),
   ].forEach((element) => {
@@ -1644,7 +1648,7 @@ function lockSub2ApiHelperUi() {
       targetId: 'sub2api',
       sub2apiReauthMode: true,
       plusModeEnabled: false,
-      totalRuns: 1,
+      totalRuns: getRunCountValue(),
     });
   }
 }
@@ -5275,7 +5279,7 @@ function collectSettingsPayload() {
     cloudMailDomain: normalizeCloudMailDomainInput((typeof inputCloudMailDomain !== 'undefined' && inputCloudMailDomain) ? inputCloudMailDomain.value : ''),
     yydsMailApiKey: (typeof inputYydsMailApiKey !== 'undefined' && inputYydsMailApiKey) ? inputYydsMailApiKey.value.trim() : '',
     yydsMailBaseUrl: normalizeYydsBaseUrlValue((typeof inputYydsMailBaseUrl !== 'undefined' && inputYydsMailBaseUrl) ? inputYydsMailBaseUrl.value : ''),
-    autoRunSkipFailures: sub2apiReauthModeEnabled ? false : inputAutoSkipFailures.checked,
+    autoRunSkipFailures: inputAutoSkipFailures.checked,
     autoRunFallbackThreadIntervalMinutes: normalizeAutoRunThreadIntervalMinutes(inputAutoSkipFailuresThreadIntervalMinutes.value),
     step6CookieCleanupEnabled: typeof inputStep6CookieCleanupEnabled !== 'undefined' && inputStep6CookieCleanupEnabled
       ? Boolean(inputStep6CookieCleanupEnabled.checked)
@@ -15304,11 +15308,6 @@ async function startAutoRunFromCurrentSettings() {
     clearPendingAutoRunStartRunCount();
     return false;
   }
-  if (reauthModeEnabled) {
-    registerPendingAutoRunStartRunCount(1);
-    inputRunCount.value = '1';
-  }
-
   const customEmailPoolEnabled = typeof usesCustomEmailPoolGenerator === 'function'
     && usesCustomEmailPoolGenerator()
     && !reauthModeEnabled;
@@ -15318,13 +15317,13 @@ async function startAutoRunFromCurrentSettings() {
   if (customEmailPoolEnabled && lockedRunCount <= 0) {
     throw new Error('请先在邮箱池里至少填写 1 个邮箱。');
   }
-  const totalRuns = reauthModeEnabled ? 1 : (lockedRunCount > 0 ? lockedRunCount : requestedTotalRuns);
+  const totalRuns = lockedRunCount > 0 ? lockedRunCount : requestedTotalRuns;
   registerPendingAutoRunStartRunCount(totalRuns);
   if (lockedRunCount > 0 && !reauthModeEnabled) {
     inputRunCount.value = String(lockedRunCount);
   }
   let mode = 'restart';
-  const autoRunSkipFailures = reauthModeEnabled ? false : inputAutoSkipFailures.checked;
+  const autoRunSkipFailures = inputAutoSkipFailures.checked;
   const contributionNickname = String(inputContributionNickname?.value || '').trim();
   const contributionQq = String(inputContributionQq?.value || '').trim();
   const fallbackThreadIntervalMinutes = normalizeAutoRunThreadIntervalMinutes(

@@ -57,6 +57,48 @@ test('sidepanel run count input no longer hardcodes max=50', () => {
   assert.doesNotMatch(inputTag[0], /\smax="50"/);
 });
 
+test('sub2api helper exposes loop count and does not force retries off', () => {
+  const html = fs.readFileSync('sidepanel/sidepanel.html', 'utf8');
+  const source = fs.readFileSync('sidepanel/sidepanel.js', 'utf8');
+
+  assert.match(html, /id="label-run-count"[^>]*>循环</);
+  assert.doesNotMatch(source, /inputRunCount\.value\s*=\s*['"]1['"]/);
+  assert.doesNotMatch(source, /reauthModeEnabled\s*\?\s*1\s*:/);
+  assert.doesNotMatch(source, /reauthModeEnabled\s*\?\s*false\s*:\s*inputAutoSkipFailures\.checked/);
+  assert.match(source, /document\.getElementById\('row-shared-auto-run'\)/);
+  assert.match(source, /inputRunCount\.hidden\s*=\s*false/);
+});
+
+test('sub2api helper first paint hides legacy cpa settings', () => {
+  const html = fs.readFileSync('sidepanel/sidepanel.html', 'utf8');
+  const hiddenRows = [
+    'row-vps-url',
+    'row-vps-password',
+    'row-local-cpa-step9-mode',
+  ];
+  const visibleRows = [
+    'row-sub2api-url',
+    'row-sub2api-email',
+    'row-sub2api-password',
+    'row-sub2api-reauth-mode',
+    'row-sub2api-reauth-email-suffix',
+    'row-sub2api-reauth-skip-emails',
+    'row-custom-password',
+    'row-mail-provider',
+    'row-shared-auto-run',
+    'row-auto-run-controls',
+    'row-oauth-display',
+    'row-oauth-callback',
+  ];
+
+  hiddenRows.forEach((rowId) => {
+    assert.match(html, new RegExp(`id="${rowId}"[^>]*style="display:none;"`));
+  });
+  visibleRows.forEach((rowId) => {
+    assert.doesNotMatch(html, new RegExp(`id="${rowId}"[^>]*style="display:none;"`));
+  });
+});
+
 test('sidepanel getRunCountValue no longer clamps run count to 50', () => {
   const source = fs.readFileSync('sidepanel/sidepanel.js', 'utf8');
   const bundle = extractFunction(source, 'getRunCountValue');

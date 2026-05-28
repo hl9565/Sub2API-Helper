@@ -458,6 +458,11 @@ header {
   font-weight: 600;
   outline: none;
 }
+.run-count-label {
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+}
 .run-count-input:focus { border-color: var(--blue); }
 .run-count-input::-webkit-inner-spin-button { opacity: 0.5; }
 .btn-success:disabled, .btn-primary:disabled, .btn-danger:disabled { background: var(--bg-elevated); color: var(--text-muted); cursor: not-allowed; box-shadow: none; }

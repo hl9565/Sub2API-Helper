@@ -29,7 +29,8 @@
       <div class="run-group">
         <button id="btn-contribution-mode" class="btn btn-outline btn-sm btn-contribution-mode" type="button"
           aria-pressed="false" title="进入贡献模式并打开官网页" hidden>贡献/使用教程</button>
-        <input type="number" id="input-run-count" class="run-count-input" value="1" min="1" title="运行次数" hidden />
+        <span id="label-run-count" class="run-count-label">循环</span>
+        <input type="number" id="input-run-count" class="run-count-input" value="1" min="1" title="循环次数" />
         <button id="btn-auto-run" class="btn btn-success" title="自动执行全部步骤">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
             <polygon points="5 3 19 12 5 21 5 3" />
@@ -156,7 +157,7 @@
           <button id="btn-exit-contribution-mode" class="btn btn-ghost btn-sm" type="button">退出贡献模式</button>
         </div>
       </div>
-      <div class="data-row" id="row-vps-url">
+      <div class="data-row" id="row-vps-url" style="display:none;">
         <span class="data-label">CPA</span>
         <div class="input-with-icon">
           <input type="password" id="input-vps-url" class="data-input data-input-with-icon"
@@ -165,7 +166,7 @@
             title="显示 CPA 地址"></button>
         </div>
       </div>
-      <div class="data-row" id="row-vps-password">
+      <div class="data-row" id="row-vps-password" style="display:none;">
         <span class="data-label">管理密钥</span>
         <div class="input-with-icon">
           <input type="password" id="input-vps-password" class="data-input data-input-with-icon"
@@ -174,23 +175,23 @@
             title="显示管理密钥"></button>
         </div>
       </div>
-      <div class="data-row" id="row-local-cpa-step9-mode">
+      <div class="data-row" id="row-local-cpa-step9-mode" style="display:none;">
         <span class="data-label">回调方式</span>
         <div id="local-cpa-step9-mode-group" class="choice-group" role="group" aria-label="回调方式">
           <button type="button" class="choice-btn" data-local-cpa-step9-mode="submit">服务器部署</button>
           <button type="button" class="choice-btn" data-local-cpa-step9-mode="bypass">本地部署</button>
         </div>
       </div>
-      <div class="data-row" id="row-sub2api-url" style="display:none;">
+      <div class="data-row" id="row-sub2api-url">
         <span class="data-label">SUB2API</span>
         <input type="text" id="input-sub2api-url" class="data-input"
           placeholder="https://your-sub2api-domain/admin/accounts" />
       </div>
-      <div class="data-row" id="row-sub2api-email" style="display:none;">
+      <div class="data-row" id="row-sub2api-email">
         <span class="data-label">账号</span>
         <input type="text" id="input-sub2api-email" class="data-input" placeholder="请输入 SUB2API 登录邮箱" />
       </div>
-      <div class="data-row" id="row-sub2api-password" style="display:none;">
+      <div class="data-row" id="row-sub2api-password">
         <span class="data-label">密码</span>
         <div class="input-with-icon">
           <input type="password" id="input-sub2api-password" class="data-input data-input-with-icon"
@@ -200,7 +201,7 @@
             data-hide-label="隐藏 SUB2API 密码" aria-label="显示 SUB2API 密码" title="显示 SUB2API 密码"></button>
         </div>
       </div>
-      <div class="data-row" id="row-sub2api-reauth-mode" style="display:none;">
+      <div class="data-row" id="row-sub2api-reauth-mode">
         <span class="data-label">重新授权</span>
         <div class="data-inline setting-pair">
           <label class="toggle-switch" for="input-sub2api-reauth-mode" title="开启后，自动挑选 SUB2API 错误账号并复用 OpenAI OAuth 链路重新授权">
@@ -212,12 +213,12 @@
           </label>
         </div>
       </div>
-      <div class="data-row" id="row-sub2api-reauth-email-suffix" style="display:none;">
+      <div class="data-row" id="row-sub2api-reauth-email-suffix">
         <span class="data-label">账号后缀</span>
         <input type="text" id="input-sub2api-reauth-email-suffix" class="data-input"
           placeholder="例如 @example.com，可留空" />
       </div>
-      <div class="data-row" id="row-sub2api-reauth-skip-emails" style="display:none;">
+      <div class="data-row" id="row-sub2api-reauth-skip-emails">
         <span class="data-label">跳过邮箱</span>
         <textarea id="input-sub2api-reauth-skip-emails" class="data-input" rows="3"
           placeholder="一行一个邮箱；已成功或失败写备注的账号会自动加入"></textarea>
@@ -335,7 +336,7 @@
           <button id="btn-clear-grok-sso" class="btn btn-ghost btn-xs data-inline-btn" type="button">清空</button>
         </div>
       </div>
-      <div class="data-row module-divider-start" id="row-custom-password" style="display:none;">
+      <div class="data-row module-divider-start" id="row-custom-password">
         <span class="data-label">OpenAI 密码</span>
         <div class="input-with-icon">
           <input type="password" id="input-password" class="data-input data-input-with-icon"
@@ -536,7 +537,7 @@
             title="显示 GoPay PIN"></button>
         </div>
       </div>
-      <div class="data-row module-divider-start" id="row-mail-provider" style="display:none;">
+      <div class="data-row module-divider-start" id="row-mail-provider">
         <span class="data-label">收码邮箱</span>
         <div class="data-inline">
           <select id="select-mail-provider" class="data-select">
@@ -695,7 +696,7 @@
           </div>
         </div>
       </div>
-      <div class="data-row module-divider-start" id="row-shared-auto-run" style="display:none;">
+      <div class="data-row module-divider-start" id="row-shared-auto-run">
         <span class="data-label">自动重试</span>
         <div class="data-inline setting-pair">
           <div class="setting-group setting-group-primary">

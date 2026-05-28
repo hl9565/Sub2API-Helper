@@ -1,22 +1,22 @@
 (() => {
-  const GITHUB_OWNER = 'QLHazyCoder';
-  const GITHUB_REPO = 'FlowPilot';
+  const GITHUB_OWNER = 'hl9565';
+  const GITHUB_REPO = 'Sub2API-Helper';
   const RELEASES_PAGE_URL = `https://github.com/${GITHUB_OWNER}/${GITHUB_REPO}/releases`;
   const RELEASES_API_URL = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/releases?per_page=10`;
-  const CACHE_KEY = 'flowpilot-release-snapshot-v1';
-  const IGNORED_UPDATE_VERSION_KEY = 'flowpilot-ignored-release-version-v1';
+  const CACHE_KEY = 'sub2api-helper-release-snapshot-v1';
+  const IGNORED_UPDATE_VERSION_KEY = 'sub2api-helper-ignored-release-version-v1';
   const CACHE_TTL_MS = 60 * 60 * 1000;
   const FETCH_TIMEOUT_MS = 8000;
   const MAX_RELEASES = 10;
   const MAX_NOTES_PER_RELEASE = 5;
-  const VERSION_FAMILY_FLOWPILOT = 'flowpilot';
+  const VERSION_FAMILY_FLOWPILOT = 'sub2api-helper';
   const VERSION_FAMILY_ULTRA = 'ultra';
   const VERSION_FAMILY_PRO = 'pro';
   const VERSION_FAMILY_LEGACY = 'legacy';
 
   function getVersionFamily(version, fallbackFamily = VERSION_FAMILY_LEGACY) {
     const trimmed = String(version || '').trim();
-    if (/^flowpilot/i.test(trimmed)) {
+    if (/^(?:sub2api[\s_-]*helper|sub2api|flowpilot)/i.test(trimmed)) {
       return VERSION_FAMILY_FLOWPILOT;
     }
     if (/^ultra/i.test(trimmed)) {
@@ -32,7 +32,7 @@
   }
 
   function stripVersionPrefix(version) {
-    return String(version || '').trim().replace(/^(?:flowpilot|ultra|pro|v)\s*/i, '');
+    return String(version || '').trim().replace(/^(?:sub2api[\s_-]*helper|sub2api|flowpilot|ultra|pro|v)\s*/i, '');
   }
 
   function extractVersionCore(version) {
@@ -68,7 +68,7 @@
 
   function getVersionFamilyPrefix(family) {
     if (family === VERSION_FAMILY_FLOWPILOT) {
-      return 'FlowPilot';
+      return 'Sub2API Helper ';
     }
     if (family === VERSION_FAMILY_ULTRA) {
       return 'Ultra';
@@ -403,11 +403,11 @@
     }
 
     const versionCore = extractVersionCore(manifest?.version || '');
-    return versionCore ? formatDisplayVersion(`FlowPilot${versionCore}`, VERSION_FAMILY_FLOWPILOT) : '';
+    return versionCore ? formatDisplayVersion(`Sub2API Helper ${versionCore}`, VERSION_FAMILY_FLOWPILOT) : '';
   }
 
   async function getReleaseSnapshot(options = {}) {
-    const localVersion = getLocalVersionLabel(chrome.runtime.getManifest()) || 'FlowPilot0.0';
+    const localVersion = getLocalVersionLabel(chrome.runtime.getManifest()) || 'Sub2API Helper 0.0';
 
     try {
       const releases = await loadReleases(options);

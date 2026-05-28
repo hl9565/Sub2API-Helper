@@ -12675,7 +12675,16 @@ const autoRunController = self.MultiPageBackgroundAutoRunController?.createAutoR
     if (!latestState?.sub2apiReauthMode) {
       return;
     }
-    await updateSub2ApiReauthFailureNotes(latestState, payload.reason || getErrorMessage(payload.error));
+    try {
+      const result = await updateSub2ApiReauthFailureNotes(latestState, payload.reason || getErrorMessage(payload.error));
+      const skipEmails = normalizeEmailListSetting(result?.sub2apiReauthSkipEmails || []);
+      if (result && skipEmails.length > 0) {
+        await addLog(`SUB2API 重新授权失败：已将 ${skipEmails.at(-1)} 加入跳过邮箱列表。`, 'warn');
+      }
+    } catch (error) {
+      await addLog(`SUB2API 重新授权失败：写入失败备注/跳过邮箱失败：${getErrorMessage(error)}`, 'error');
+      throw error;
+    }
   },
   persistAutoRunTimerPlan,
   resetState,
@@ -14344,12 +14353,17 @@ async function updateSub2ApiReauthFailureNotes(state = {}, reason = '', options 
     failureKind,
     timeoutMs: SUB2API_REAUTH_ACCOUNT_SELECT_TIMEOUT_MS,
   });
-  await setState({
+  const updates = {
     sub2apiReauthAccountNotes: result.sub2apiReauthAccountNotes || '',
     sub2apiReauthFailureReason: result.sub2apiReauthFailureReason || reason,
     sub2apiReauthRetryAt: result.sub2apiReauthRetryAt || retryAt,
     sub2apiReauthSkipEmails: normalizeEmailListSetting(result.sub2apiReauthSkipEmails || state.sub2apiReauthSkipEmails),
+  };
+  await setPersistentSettings({
+    sub2apiReauthSkipEmails: updates.sub2apiReauthSkipEmails,
   });
+  await setState(updates);
+  broadcastDataUpdate(updates);
   return result;
 }
 

@@ -4,6 +4,8 @@
 const GMAIL_PREFIX = '[MultiPage:gmail-mail]';
 const GMAIL_SEEN_CODES_KEY = 'seenGmailCodes';
 const GMAIL_FALLBACK_AFTER = 3;
+const GMAIL_OPEN_ROW_TIMEOUT_MS = 12000;
+const GMAIL_OPEN_ROW_MAX_RETRIES = 3;
 const isTopFrame = window === window.top;
 
 console.log(GMAIL_PREFIX, 'Content script loaded on', location.href, 'frame:', isTopFrame ? 'top' : 'child');
@@ -301,12 +303,9 @@ function getCategoryScanOrder() {
     return [{ key: 'primary', label: 'Primary', selected: true, tab: null }];
   }
 
-  const ordered = ['updates', 'primary']
-    .map((key) => categoryTabs.find((item) => item.key === key))
-    .filter(Boolean);
-
-  return ordered.length
-    ? ordered
+  const primary = categoryTabs.find((item) => item.key === 'primary');
+  return primary
+    ? [primary]
     : [{ key: 'primary', label: 'Primary', selected: true, tab: null }];
 }
 
@@ -560,12 +559,16 @@ async function returnToInbox() {
 }
 
 async function openRowAndGetMessageText(row) {
+  const startedAt = Date.now();
   simulateClick(row);
 
   for (let i = 0; i < 20; i++) {
     const messageContainer = document.querySelector('div[role="main"] .a3s, div[role="main"] [data-message-id], h2[data-thread-perm-id]');
     if (messageContainer || !/#inbox/i.test(location.href)) {
       break;
+    }
+    if (Date.now() - startedAt > GMAIL_OPEN_ROW_TIMEOUT_MS) {
+      throw new Error('打开 Gmail 邮件正文超时');
     }
     await sleep(250);
   }
@@ -574,7 +577,28 @@ async function openRowAndGetMessageText(row) {
   const main = document.querySelector('div[role="main"]');
   const text = normalizeText(main?.innerText || document.body?.innerText || document.body?.textContent || '');
   await returnToInbox();
+  if (!text) {
+    throw new Error('打开 Gmail 邮件正文后未读取到文本');
+  }
   return text;
+}
+
+async function openRowAndGetMessageTextWithRetry(row, step, maxRetries = GMAIL_OPEN_ROW_MAX_RETRIES) {
+  let lastError = null;
+  const attempts = Math.max(1, Math.floor(Number(maxRetries) || GMAIL_OPEN_ROW_MAX_RETRIES));
+  for (let attempt = 1; attempt <= attempts; attempt++) {
+    try {
+      return await openRowAndGetMessageText(row);
+    } catch (error) {
+      lastError = error;
+      log(`步骤 ${step}：打开 Gmail 邮件正文失败（${attempt}/${attempts}）：${error?.message || error}`, 'warn');
+      await returnToInbox();
+      if (attempt < attempts) {
+        await sleep(800);
+      }
+    }
+  }
+  throw lastError || new Error('打开 Gmail 邮件正文失败');
 }
 
 async function handlePollEmail(step, payload) {
@@ -679,7 +703,14 @@ async function handlePollEmail(step, payload) {
           };
         }
 
-        const openedText = await openRowAndGetMessageText(row);
+        let openedText = '';
+        try {
+          openedText = await openRowAndGetMessageTextWithRetry(row, step);
+        } catch (error) {
+          log(`步骤 ${step}：多次打开 Gmail 邮件正文失败，继续检查其他邮件：${error?.message || error}`, 'warn');
+          await returnToInbox();
+          continue;
+        }
         const openedTargetState = getTargetEmailMatchState(openedText, targetEmail);
         const bodyCode = extractVerificationCode(openedText, {
           codePatterns,

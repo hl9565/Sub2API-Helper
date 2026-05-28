@@ -3,6 +3,7 @@
 })(typeof self !== 'undefined' ? self : globalThis, function createBackgroundFlowMailPollingModule() {
   const ICLOUD_MAIL_POLL_MIN_ATTEMPTS = 5;
   const ICLOUD_MAIL_POLL_TIMEOUT_MARGIN_MS = 25000;
+  const GMAIL_MAIL_POLL_TIMEOUT_MARGIN_MS = 60000;
   const DEFAULT_BROWSER_MAIL_TRANSPORT_ERROR_STREAK = 3;
   const ICLOUD_BROWSER_MAIL_TRANSPORT_ERROR_STREAK = 6;
 
@@ -14,10 +15,17 @@
     return cleanString(value).toLowerCase();
   }
 
-  function getMailPollingResponseTimeoutMs(payload = {}) {
+  function isGmailMail(mail = {}) {
+    return mail?.source === 'gmail-mail' || mail?.provider === 'gmail';
+  }
+
+  function getMailPollingResponseTimeoutMs(payload = {}, mail = {}) {
     const maxAttempts = Math.max(1, Math.floor(Number(payload?.maxAttempts) || 1));
     const intervalMs = Math.max(1, Number(payload?.intervalMs) || 3000);
-    return Math.max(45000, maxAttempts * intervalMs + ICLOUD_MAIL_POLL_TIMEOUT_MARGIN_MS);
+    const marginMs = isGmailMail(mail)
+      ? GMAIL_MAIL_POLL_TIMEOUT_MARGIN_MS
+      : ICLOUD_MAIL_POLL_TIMEOUT_MARGIN_MS;
+    return Math.max(45000, maxAttempts * intervalMs + marginMs);
   }
 
   function isIcloudMail(mail = {}) {
@@ -42,7 +50,7 @@
 
   function resolveMailPollingTimeouts(mail = {}, payload = {}) {
     const normalizedPayload = normalizeIcloudMailPollPayload(mail, payload);
-    const responseTimeoutMs = getMailPollingResponseTimeoutMs(normalizedPayload);
+    const responseTimeoutMs = getMailPollingResponseTimeoutMs(normalizedPayload, mail);
     return {
       payload: normalizedPayload,
       responseTimeoutMs,

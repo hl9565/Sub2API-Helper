@@ -1011,30 +1011,31 @@
       if (extra) {
         updatePayload.extra = extra;
       }
-      await requestJson(origin, `/api/v1/admin/accounts/${accountId}`, {
-        method: 'PUT',
-        token,
-        timeoutMs: options.updateTimeoutMs || options.timeoutMs,
-        body: updatePayload,
-      });
-      await logWithOptions(`${logLabel}：旧账号 ${accountLabel} credentials 已更新，正在清除错误状态...`, 'info', options);
-      await requestJson(origin, `/api/v1/admin/accounts/${accountId}/clear-error`, {
+
+      await logWithOptions(`${logLabel}：正在应用 OAuth credentials，并让 SUB2API 清除错误状态 / 刷新 token 缓存...`, 'info', options);
+      await requestJson(origin, `/api/v1/admin/accounts/${accountId}/apply-oauth-credentials`, {
         method: 'POST',
         token,
-        timeoutMs: options.clearErrorTimeoutMs || options.timeoutMs,
-        body: {},
+        timeoutMs: options.applyCredentialsTimeoutMs || options.updateTimeoutMs || options.timeoutMs,
+        body: updatePayload,
       });
 
-      const verifiedStatus = `SUB2API 旧账号 ${accountLabel} 已重新授权并清除错误状态`;
+      await logWithOptions(`${logLabel}：旧账号 ${accountLabel} 已恢复为正常状态，正在开启调度...`, 'info', options);
+      await requestJson(origin, `/api/v1/admin/accounts/${accountId}/schedulable`, {
+        method: 'POST',
+        token,
+        timeoutMs: options.schedulableTimeoutMs || options.timeoutMs,
+        body: { schedulable: true },
+      });
+
+      const verifiedStatus = `SUB2API 旧账号 ${accountLabel} 已重新授权，账号状态正常，调度已开启`;
       await logWithOptions(`${logLabel}：${verifiedStatus}`, 'ok', options);
-      const skipEmails = appendReauthSkipEmail(state.sub2apiReauthSkipEmails, state.sub2apiReauthAccountEmail || state.email);
       return {
         localhostUrl: callback.url,
         verifiedStatus,
         sub2apiReauthAccountId: accountId,
         sub2apiReauthAccountName: normalizeString(state.sub2apiReauthAccountName),
         sub2apiReauthCompleted: true,
-        sub2apiReauthSkipEmails: skipEmails,
       };
     }
 

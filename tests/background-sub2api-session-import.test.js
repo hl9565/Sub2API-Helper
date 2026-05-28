@@ -2,6 +2,94 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const test = require('node:test');
 
+test('successful Sub2API reauth does not append the account to skip emails', () => {
+  const source = fs.readFileSync('background/sub2api-api.js', 'utf8');
+  const start = source.indexOf('async function submitOpenAiReauthCallback');
+  const end = source.indexOf('\n    async function updateOpenAiReauthFailureNotes', start);
+  const functionBlock = source.slice(start, end);
+
+  assert.notEqual(start, -1, 'missing submitOpenAiReauthCallback');
+  assert.notEqual(end, -1, 'missing updateOpenAiReauthFailureNotes marker');
+  assert.doesNotMatch(functionBlock, /appendReauthSkipEmail/);
+  assert.doesNotMatch(functionBlock, /sub2apiReauthSkipEmails:\s*skipEmails/);
+});
+
+test('successful Sub2API reauth applies oauth credentials and enables scheduling', async () => {
+  const apiModule = loadSub2ApiApiModule();
+  const fetchCalls = [];
+  const logs = [];
+
+  const api = apiModule.createSub2ApiApi({
+    addLog: async (message, level = 'info') => {
+      logs.push({ message, level });
+    },
+    normalizeSub2ApiUrl: (value) => value,
+    fetchImpl: async (url, options = {}) => {
+      const parsed = new URL(url);
+      const body = options.body ? JSON.parse(options.body) : null;
+      fetchCalls.push({ path: parsed.pathname, method: options.method || 'GET', body });
+
+      if (parsed.pathname === '/api/v1/auth/login') {
+        return createJsonResponse({ code: 0, data: { access_token: 'admin-token' } });
+      }
+      if (parsed.pathname === '/api/v1/admin/openai/exchange-code') {
+        assert.deepStrictEqual(body, {
+          session_id: 'session-123',
+          code: 'oauth-code',
+          state: 'oauth-state',
+        });
+        return createJsonResponse({
+          code: 0,
+          data: {
+            access_token: 'access-token',
+            refresh_token: 'refresh-token',
+            email: 'reauth@example.com',
+          },
+        });
+      }
+      if (parsed.pathname === '/api/v1/admin/accounts/42/apply-oauth-credentials') {
+        assert.equal(body.type, 'oauth');
+        assert.equal(body.credentials.access_token, 'access-token');
+        assert.equal(body.credentials.refresh_token, 'refresh-token');
+        assert.equal(body.extra.email, 'reauth@example.com');
+        return createJsonResponse({ code: 0, data: { id: 42, status: 'active', schedulable: false } });
+      }
+      if (parsed.pathname === '/api/v1/admin/accounts/42/schedulable') {
+        assert.deepStrictEqual(body, { schedulable: true });
+        return createJsonResponse({ code: 0, data: { id: 42, status: 'active', schedulable: true } });
+      }
+
+      return createJsonResponse({ code: 1, message: `unexpected path ${parsed.pathname}` }, 404);
+    },
+  });
+
+  const result = await api.submitOpenAiReauthCallback({
+    sub2apiUrl: 'https://sub.example/admin/accounts',
+    sub2apiEmail: 'admin@example.com',
+    sub2apiPassword: 'secret',
+    sub2apiReauthAccountId: 42,
+    sub2apiReauthAccountName: 'reauth@example.com',
+    sub2apiSessionId: 'session-123',
+    sub2apiOAuthState: 'oauth-state',
+    localhostUrl: 'http://localhost:1455/auth/callback?code=oauth-code&state=oauth-state',
+  });
+
+  assert.deepStrictEqual(
+    fetchCalls.map((call) => `${call.method} ${call.path}`),
+    [
+      'POST /api/v1/auth/login',
+      'POST /api/v1/admin/openai/exchange-code',
+      'POST /api/v1/admin/accounts/42/apply-oauth-credentials',
+      'POST /api/v1/admin/accounts/42/schedulable',
+    ]
+  );
+  assert.equal(
+    result.verifiedStatus,
+    'SUB2API 旧账号 #42 reauth@example.com 已重新授权，账号状态正常，调度已开启'
+  );
+  assert.equal(logs.some((entry) => /调度已开启/.test(entry.message) && entry.level === 'ok'), true);
+});
+
 function createJsonResponse(payload, status = 200) {
   return {
     ok: status >= 200 && status < 300,

@@ -108,6 +108,38 @@ test('flow mail polling service prepares browser mail provider sessions and payl
   assert.equal(mailOptions.responseTimeoutMs, 45000);
 });
 
+test('flow mail polling service gives Gmail extra response time for slow UI reads', async () => {
+  const api = loadFlowMailPollingApi();
+  let mailOptions = null;
+  const service = api.createFlowMailPollingService({
+    addLog: async () => {},
+    buildVerificationPollPayloadForNode: () => ({
+      step: 8,
+      maxAttempts: 4,
+      intervalMs: 10000,
+    }),
+    getMailConfig: () => ({
+      provider: 'gmail',
+      source: 'gmail-mail',
+      label: 'Gmail 邮箱',
+    }),
+    sendToMailContentScriptResilient: async (_mail, _message, options) => {
+      mailOptions = options;
+      return { code: '123456', emailTimestamp: 789 };
+    },
+  });
+
+  const result = await service.pollFlowVerificationCode({
+    flowId: 'openai',
+    nodeId: 'fetch-login-code',
+    state: { activeFlowId: 'openai' },
+    step: 8,
+  });
+
+  assert.equal(result.code, '123456');
+  assert.equal(mailOptions.responseTimeoutMs, 100000);
+});
+
 test('flow mail polling service lets 2925 limit errors flow through shared recovery', async () => {
   const api = loadFlowMailPollingApi();
   const limitError = new Error('MAIL2925_LIMIT_REACHED::子邮箱已达上限');

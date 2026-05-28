@@ -46,7 +46,7 @@ test('flow registry exposes canonical flow and target metadata', () => {
   assert.equal(flowRegistry.normalizeTargetId('grok', 'anything-else'), 'webchat2api');
   assert.deepEqual(
     flowRegistry.getVisibleGroupIds('openai', 'cpa'),
-    ['openai-plus', 'openai-phone', 'shared-auto-run', 'openai-oauth', 'openai-step6', 'shared-settings-actions', 'openai-target-cpa', 'service-account', 'service-email', 'service-proxy']
+    ['openai-plus', 'shared-auto-run', 'openai-oauth', 'shared-settings-actions', 'openai-target-cpa', 'service-account', 'service-email', 'service-proxy']
   );
   assert.deepEqual(
     flowRegistry.getVisibleGroupIds('kiro', 'kiro-rs'),
@@ -70,11 +70,11 @@ test('flow registry exposes canonical flow and target metadata', () => {
   );
   assert.deepEqual(
     flowRegistry.getSettingsGroupDefinition('shared-auto-run')?.rowIds,
-    ['row-shared-auto-run', 'row-auto-run-thread-interval', 'row-step-execution-range']
+    []
   );
   assert.deepEqual(
     flowRegistry.getSettingsGroupDefinition('shared-settings-actions')?.rowIds,
-    ['row-settings-actions']
+    []
   );
   assert.equal(flowRegistry.getPublicationTargetDefinition('kiro', 'kiro-rs')?.label, 'kiro.rs');
   assert.equal(flowRegistry.getFlowCapabilities('openai').supportsAccountContribution, true);

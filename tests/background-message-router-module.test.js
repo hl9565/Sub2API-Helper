@@ -47,6 +47,20 @@ test('background free reusable phone setter can recover local HeroSMS activation
   assert.match(setterBlock, /manualOnly:\s*!activationId/);
 });
 
+test('Sub2API reauth failure notes persist and broadcast skip-email updates', () => {
+  const source = fs.readFileSync('background.js', 'utf8');
+  const start = source.indexOf('async function updateSub2ApiReauthFailureNotes');
+  const end = source.indexOf('\nasync function executeSelectSub2ApiErrorAccount', start);
+  const functionBlock = source.slice(start, end);
+
+  assert.notEqual(start, -1, 'missing updateSub2ApiReauthFailureNotes');
+  assert.notEqual(end, -1, 'missing executeSelectSub2ApiErrorAccount marker');
+  assert.match(functionBlock, /sub2apiReauthSkipEmails:\s*normalizeEmailListSetting/);
+  assert.match(functionBlock, /setPersistentSettings\(\{\s*sub2apiReauthSkipEmails:\s*updates\.sub2apiReauthSkipEmails/s);
+  assert.match(functionBlock, /await setState\(updates\);/);
+  assert.match(functionBlock, /broadcastDataUpdate\(updates\);/);
+});
+
 test('background blocks free reusable phone mutations while phone signup owns the identity', () => {
   const source = fs.readFileSync('background.js', 'utf8');
   const clearStart = source.indexOf('async function clearFreeReusablePhoneActivation');

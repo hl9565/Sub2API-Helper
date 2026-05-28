@@ -3,13 +3,13 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 
 const source = fs.readFileSync('sidepanel/update-service.js', 'utf8');
-const CACHE_KEY = 'flowpilot-release-snapshot-v1';
+const CACHE_KEY = 'sub2api-helper-release-snapshot-v1';
 const LEGACY_CACHE_KEY = 'multipage-release-snapshot-v1';
 
 function createUpdateService(options = {}) {
   const manifest = options.manifest || {
     version: '1.0',
-    version_name: 'FlowPilot1.0',
+    version_name: 'Sub2API Helper 1.0',
   };
   const cache = new Map();
   const windowObject = {};
@@ -85,7 +85,7 @@ function createUpdateService(options = {}) {
   };
 }
 
-test('getReleaseSnapshot keeps FlowPilot releases ahead of historical Ultra, Pro, and legacy v releases', async () => {
+test('getReleaseSnapshot keeps Sub2API Helper releases ahead of historical Ultra, Pro, and legacy v releases', async () => {
   const { api } = createUpdateService({
     manifest: {
       version: '9.99',
@@ -123,9 +123,9 @@ test('getReleaseSnapshot keeps FlowPilot releases ahead of historical Ultra, Pro
             prerelease: false,
           },
           {
-            tag_name: 'FlowPilot1.0',
-            name: 'FlowPilot1.0',
-            html_url: 'https://example.com/FlowPilot1.0',
+            tag_name: 'Sub2API Helper 1.0',
+            name: 'Sub2API Helper 1.0',
+            html_url: 'https://example.com/Sub2API Helper 1.0',
             published_at: '2026-04-20T00:00:00.000Z',
             body: '- current release',
             draft: false,
@@ -140,10 +140,10 @@ test('getReleaseSnapshot keeps FlowPilot releases ahead of historical Ultra, Pro
 
   assert.equal(snapshot.status, 'update-available');
   assert.equal(snapshot.localVersion, 'Ultra9.99');
-  assert.equal(snapshot.latestVersion, 'FlowPilot1.0');
+  assert.equal(snapshot.latestVersion, 'Sub2API Helper 1.0');
   assert.deepEqual(
     snapshot.newerReleases.map((release) => release.displayVersion),
-    ['FlowPilot1.0']
+    ['Sub2API Helper 1.0']
   );
 });
 
@@ -151,7 +151,7 @@ test('getReleaseSnapshot reorders cached releases before choosing latest version
   const { api, getFetchCalls } = createUpdateService({
     manifest: {
       version: '1.0',
-      version_name: 'FlowPilot1.0',
+      version_name: 'Sub2API Helper 1.0',
     },
     cachedSnapshot: {
       fetchedAt: Date.now(),
@@ -185,10 +185,10 @@ test('getReleaseSnapshot reorders cached releases before choosing latest version
         },
         {
           version: '1.1',
-          displayVersion: 'FlowPilot1.1',
-          family: 'flowpilot',
+          displayVersion: 'Sub2API Helper 1.1',
+          family: 'sub2api-helper',
           title: '',
-          url: 'https://example.com/FlowPilot1.1',
+          url: 'https://example.com/Sub2API Helper 1.1',
           publishedAt: '2026-04-20T00:00:00.000Z',
           notes: [],
         },
@@ -203,14 +203,14 @@ test('getReleaseSnapshot reorders cached releases before choosing latest version
 
   assert.equal(getFetchCalls(), 0);
   assert.equal(snapshot.status, 'update-available');
-  assert.equal(snapshot.latestVersion, 'FlowPilot1.1');
+  assert.equal(snapshot.latestVersion, 'Sub2API Helper 1.1');
   assert.deepEqual(
     snapshot.newerReleases.map((release) => release.displayVersion),
-    ['FlowPilot1.1']
+    ['Sub2API Helper 1.1']
   );
 });
 
-test('getReleaseSnapshot ignores legacy repository cache after FlowPilot rename', async () => {
+test('getReleaseSnapshot ignores legacy repository cache after Sub2API Helper rename', async () => {
   const { api, getFetchCalls } = createUpdateService({
     legacyCachedSnapshot: {
       fetchedAt: Date.now(),
@@ -231,9 +231,9 @@ test('getReleaseSnapshot ignores legacy repository cache after FlowPilot rename'
       async json() {
         return [
           {
-            tag_name: 'FlowPilot1.1',
-            name: 'FlowPilot1.1',
-            html_url: 'https://github.com/QLHazyCoder/FlowPilot/releases/tag/FlowPilot1.1',
+            tag_name: 'Sub2API Helper 1.1',
+            name: 'Sub2API Helper 1.1',
+            html_url: 'https://github.com/hl9565/Sub2API-Helper/releases/tag/Sub2API Helper 1.1',
             published_at: '2026-04-20T00:00:00.000Z',
             body: '- current release',
             draft: false,
@@ -247,17 +247,17 @@ test('getReleaseSnapshot ignores legacy repository cache after FlowPilot rename'
   const snapshot = await api.getReleaseSnapshot();
 
   assert.equal(getFetchCalls(), 1);
-  assert.equal(snapshot.logUrl, 'https://github.com/QLHazyCoder/FlowPilot/releases/tag/FlowPilot1.1');
-  assert.equal(api.releasesPageUrl, 'https://github.com/QLHazyCoder/FlowPilot/releases');
-  assert.equal(api.repositoryUrl, 'https://github.com/QLHazyCoder/FlowPilot');
+  assert.equal(snapshot.logUrl, 'https://github.com/hl9565/Sub2API-Helper/releases/tag/Sub2API Helper 1.1');
+  assert.equal(api.releasesPageUrl, 'https://github.com/hl9565/Sub2API-Helper/releases');
+  assert.equal(api.repositoryUrl, 'https://github.com/hl9565/Sub2API-Helper');
 });
 
 test('getReleaseSnapshot suppresses an ignored latest update until a newer release appears', async () => {
   let releases = [
     {
-      tag_name: 'FlowPilot1.1',
-      name: 'FlowPilot1.1',
-      html_url: 'https://example.com/FlowPilot1.1',
+      tag_name: 'Sub2API Helper 1.1',
+      name: 'Sub2API Helper 1.1',
+      html_url: 'https://example.com/Sub2API Helper 1.1',
       published_at: '2026-04-19T00:00:00.000Z',
       body: '- current release',
       draft: false,
@@ -267,7 +267,7 @@ test('getReleaseSnapshot suppresses an ignored latest update until a newer relea
   const { api } = createUpdateService({
     manifest: {
       version: '1.0',
-      version_name: 'FlowPilot1.0',
+      version_name: 'Sub2API Helper 1.0',
     },
     fetchImpl: async () => ({
       ok: true,
@@ -279,17 +279,17 @@ test('getReleaseSnapshot suppresses an ignored latest update until a newer relea
 
   const firstSnapshot = await api.getReleaseSnapshot({ force: true });
   assert.equal(firstSnapshot.status, 'update-available');
-  assert.equal(api.ignoreReleaseSnapshot(firstSnapshot), 'FlowPilot1.1');
+  assert.equal(api.ignoreReleaseSnapshot(firstSnapshot), 'Sub2API Helper 1.1');
 
   const ignoredSnapshot = await api.getReleaseSnapshot({ force: true });
   assert.equal(ignoredSnapshot.status, 'ignored');
-  assert.equal(ignoredSnapshot.ignoredVersion, 'FlowPilot1.1');
+  assert.equal(ignoredSnapshot.ignoredVersion, 'Sub2API Helper 1.1');
 
   releases = [
     {
-      tag_name: 'FlowPilot1.2',
-      name: 'FlowPilot1.2',
-      html_url: 'https://example.com/FlowPilot1.2',
+      tag_name: 'Sub2API Helper 1.2',
+      name: 'Sub2API Helper 1.2',
+      html_url: 'https://example.com/Sub2API Helper 1.2',
       published_at: '2026-04-20T00:00:00.000Z',
       body: '- next release',
       draft: false,
@@ -300,5 +300,5 @@ test('getReleaseSnapshot suppresses an ignored latest update until a newer relea
 
   const newerSnapshot = await api.getReleaseSnapshot({ force: true });
   assert.equal(newerSnapshot.status, 'update-available');
-  assert.equal(newerSnapshot.latestVersion, 'FlowPilot1.2');
+  assert.equal(newerSnapshot.latestVersion, 'Sub2API Helper 1.2');
 });
