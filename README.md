@@ -2,7 +2,7 @@
 
 `Sub2API Helper` 是一个用于辅助 SUB2API OpenAI OAuth 错误账号重新授权的 Chrome 侧边栏扩展。
 
-本项目基于 `FlowPilot` 改造而来，当前版本只聚焦 SUB2API 重新授权场景，不作为 FlowPilot 全功能版本使用。
+本项目基于 [FlowPilot](https://github.com/QLHazyCoder/FlowPilot) 改造而来，当前版本只聚焦 SUB2API 重新授权场景，不作为 FlowPilot 全功能版本使用。
 
 ## 主要功能
 
