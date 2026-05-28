@@ -1,0 +1,25 @@
+/docs/md
+
+/.github
+/_metadata/
+.vscode
+.DS_Store
+**/.DS_Store
+
+/data/account-run-history.txt
+/data/account-run-history.json
+/data/generated-emails.db
+.npm-test.log
+.omx/
+/node_modules
+/.runtime
+/dist/
+*.zip
+*.crx
+*.pem
+/docs/新步骤顺序
+__pycache__/
+*.pyc
+.worktrees/
+# Local exported runtime settings
+/config.json
