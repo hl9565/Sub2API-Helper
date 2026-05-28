@@ -15225,12 +15225,6 @@ autoStartMessage?.addEventListener('click', (event) => {
   event.preventDefault();
   openExternalUrl(link.dataset.externalUrl || link.href);
 });
-autoRunAdBar?.addEventListener('click', (event) => {
-  const link = event.target?.closest?.('a[data-external-url]');
-  if (!link) return;
-  event.preventDefault();
-  openExternalUrl(link.dataset.externalUrl || link.href);
-});
 btnAutoStartClose?.addEventListener('click', () => resolveModalChoice(null));
 
 async function startAutoRunFromCurrentSettings() {
