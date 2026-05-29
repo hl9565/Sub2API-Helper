@@ -1011,24 +1011,37 @@
       if (extra) {
         updatePayload.extra = extra;
       }
+      const restoreAccountEnabled = Boolean(state.sub2apiReauthRestoreAccountEnabled);
 
-      await logWithOptions(`${logLabel}：正在应用 OAuth credentials，并让 SUB2API 清除错误状态 / 刷新 token 缓存...`, 'info', options);
-      await requestJson(origin, `/api/v1/admin/accounts/${accountId}/apply-oauth-credentials`, {
-        method: 'POST',
-        token,
-        timeoutMs: options.applyCredentialsTimeoutMs || options.updateTimeoutMs || options.timeoutMs,
-        body: updatePayload,
-      });
+      if (restoreAccountEnabled) {
+        await logWithOptions(`${logLabel}：正在应用 OAuth credentials，并让 SUB2API 清除错误状态 / 刷新 token 缓存...`, 'info', options);
+        await requestJson(origin, `/api/v1/admin/accounts/${accountId}/apply-oauth-credentials`, {
+          method: 'POST',
+          token,
+          timeoutMs: options.applyCredentialsTimeoutMs || options.updateTimeoutMs || options.timeoutMs,
+          body: updatePayload,
+        });
 
-      await logWithOptions(`${logLabel}：旧账号 ${accountLabel} 已恢复为正常状态，正在开启调度...`, 'info', options);
-      await requestJson(origin, `/api/v1/admin/accounts/${accountId}/schedulable`, {
-        method: 'POST',
-        token,
-        timeoutMs: options.schedulableTimeoutMs || options.timeoutMs,
-        body: { schedulable: true },
-      });
+        await logWithOptions(`${logLabel}：旧账号 ${accountLabel} 已恢复为正常状态，正在开启调度...`, 'info', options);
+        await requestJson(origin, `/api/v1/admin/accounts/${accountId}/schedulable`, {
+          method: 'POST',
+          token,
+          timeoutMs: options.schedulableTimeoutMs || options.timeoutMs,
+          body: { schedulable: true },
+        });
+      } else {
+        await logWithOptions(`${logLabel}：正在写回旧账号 ${accountLabel} credentials；未开启“成功后恢复”，本次不修改账号状态/调度。`, 'info', options);
+        await requestJson(origin, `/api/v1/admin/accounts/${accountId}`, {
+          method: 'PUT',
+          token,
+          timeoutMs: options.updateTimeoutMs || options.timeoutMs,
+          body: updatePayload,
+        });
+      }
 
-      const verifiedStatus = `SUB2API 旧账号 ${accountLabel} 已重新授权，账号状态正常，调度已开启`;
+      const verifiedStatus = restoreAccountEnabled
+        ? `SUB2API 旧账号 ${accountLabel} 已重新授权，账号状态正常，调度已开启`
+        : `SUB2API 旧账号 ${accountLabel} 已重新授权，未修改账号状态/调度`;
       await logWithOptions(`${logLabel}：${verifiedStatus}`, 'ok', options);
       return {
         localhostUrl: callback.url,

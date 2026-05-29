@@ -3150,7 +3150,8 @@ function isAddEmailPageReady() {
 
 function isPhoneVerificationPageReady() {
   const path = `${location.pathname || ''} ${location.href || ''}`;
-  const isPhoneVerificationRoute = /\/phone-verification(?:[/?#]|$)/i.test(path);
+  const isPhoneVerificationRoute = /\/phone-verification(?:[/?#]|$)/i.test(path)
+    || /\/phone-otp(?:\/select-channel)?(?:[/?#]|$)/i.test(path);
   const isContactVerificationRoute = /\/contact-verification(?:[/?#]|$)/i.test(path);
   if (isContactVerificationRoute && getContactVerificationServerErrorText()) {
     return false;

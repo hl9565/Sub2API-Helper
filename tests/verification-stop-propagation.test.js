@@ -136,7 +136,11 @@ return {
   const state = api.snapshot();
   assert.strictEqual(error?.message, '流程已被用户停止。', 'Stop 错误应原样向上抛出');
   assert.strictEqual(state.resendCalls, 0, 'Stop 后不应继续请求新的验证码');
-  assert.deepStrictEqual(state.logs, [], 'Stop 后不应再记录普通失败或重试日志');
+  assert.equal(
+    state.logs.some((entry) => /失败|重试|重新获取/.test(entry.message || '')),
+    false,
+    'Stop 后不应再记录普通失败或重试日志'
+  );
 }
 
 async function testResolveVerificationStepRethrowsStopFromFreshRequest() {

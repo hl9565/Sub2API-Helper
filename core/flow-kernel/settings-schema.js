@@ -284,6 +284,7 @@
           sub2apiAccountPriority: Math.max(1, Number(targetState.sub2apiAccountPriority) || 1),
           sub2apiDefaultProxyName: String(targetState.sub2apiDefaultProxyName ?? '').trim(),
           sub2apiReauthMode: Boolean(targetState.sub2apiReauthMode),
+          sub2apiReauthRestoreAccountEnabled: Boolean(targetState.sub2apiReauthRestoreAccountEnabled),
           sub2apiReauthEmailSuffix: String(targetState.sub2apiReauthEmailSuffix ?? '').trim().toLowerCase(),
           sub2apiReauthSkipEmails: normalizeEmailListSetting(targetState.sub2apiReauthSkipEmails),
         };
@@ -411,6 +412,7 @@
         sub2apiAccountPriority: input?.sub2apiAccountPriority ?? currentFlow.targets.sub2api.sub2apiAccountPriority,
         sub2apiDefaultProxyName: input?.sub2apiDefaultProxyName ?? currentFlow.targets.sub2api.sub2apiDefaultProxyName,
         sub2apiReauthMode: input?.sub2apiReauthMode ?? currentFlow.targets.sub2api.sub2apiReauthMode,
+        sub2apiReauthRestoreAccountEnabled: input?.sub2apiReauthRestoreAccountEnabled ?? currentFlow.targets.sub2api.sub2apiReauthRestoreAccountEnabled,
         sub2apiReauthEmailSuffix: input?.sub2apiReauthEmailSuffix ?? currentFlow.targets.sub2api.sub2apiReauthEmailSuffix,
         sub2apiReauthSkipEmails: input?.sub2apiReauthSkipEmails ?? currentFlow.targets.sub2api.sub2apiReauthSkipEmails,
       };
@@ -831,6 +833,7 @@
       next.sub2apiAccountPriority = openaiState.targets.sub2api?.sub2apiAccountPriority || 1;
       next.sub2apiDefaultProxyName = openaiState.targets.sub2api?.sub2apiDefaultProxyName || '';
       next.sub2apiReauthMode = Boolean(openaiState.targets.sub2api?.sub2apiReauthMode);
+      next.sub2apiReauthRestoreAccountEnabled = Boolean(openaiState.targets.sub2api?.sub2apiReauthRestoreAccountEnabled);
       next.sub2apiReauthEmailSuffix = String(openaiState.targets.sub2api?.sub2apiReauthEmailSuffix || '').trim().toLowerCase();
       next.sub2apiReauthSkipEmails = cloneValue(openaiState.targets.sub2api?.sub2apiReauthSkipEmails || []);
       next.codex2apiUrl = openaiState.targets.codex2api?.codex2apiUrl || '';

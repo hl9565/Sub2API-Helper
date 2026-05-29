@@ -81,6 +81,7 @@ test('sub2api helper first paint hides legacy cpa settings', () => {
     'row-sub2api-email',
     'row-sub2api-password',
     'row-sub2api-reauth-mode',
+    'row-sub2api-reauth-restore-account',
     'row-sub2api-reauth-email-suffix',
     'row-sub2api-reauth-skip-emails',
     'row-custom-password',

@@ -104,6 +104,8 @@ const rowSub2ApiPassword = document.getElementById('row-sub2api-password');
 const inputSub2ApiPassword = document.getElementById('input-sub2api-password');
 const rowSub2ApiReauthMode = document.getElementById('row-sub2api-reauth-mode');
 const inputSub2ApiReauthMode = document.getElementById('input-sub2api-reauth-mode');
+const rowSub2ApiReauthRestoreAccount = document.getElementById('row-sub2api-reauth-restore-account');
+const inputSub2ApiReauthRestoreAccount = document.getElementById('input-sub2api-reauth-restore-account');
 const rowSub2ApiReauthEmailSuffix = document.getElementById('row-sub2api-reauth-email-suffix');
 const inputSub2ApiReauthEmailSuffix = document.getElementById('input-sub2api-reauth-email-suffix');
 const rowSub2ApiReauthSkipEmails = document.getElementById('row-sub2api-reauth-skip-emails');
@@ -1621,6 +1623,7 @@ function lockSub2ApiHelperUi() {
     rowSub2ApiEmail,
     rowSub2ApiPassword,
     rowSub2ApiReauthMode,
+    rowSub2ApiReauthRestoreAccount,
     rowSub2ApiReauthEmailSuffix,
     rowSub2ApiReauthSkipEmails,
     rowCustomPassword,
@@ -5115,6 +5118,11 @@ function collectSettingsPayload() {
     sub2apiEmail: inputSub2ApiEmail.value.trim(),
     sub2apiPassword: inputSub2ApiPassword.value,
     sub2apiReauthMode: sub2apiReauthModeEnabled,
+    sub2apiReauthRestoreAccountEnabled: Boolean(
+      typeof inputSub2ApiReauthRestoreAccount !== 'undefined' && inputSub2ApiReauthRestoreAccount
+        ? inputSub2ApiReauthRestoreAccount.checked
+        : latestState?.sub2apiReauthRestoreAccountEnabled
+    ),
     sub2apiReauthEmailSuffix: String(
       typeof inputSub2ApiReauthEmailSuffix !== 'undefined' && inputSub2ApiReauthEmailSuffix
         ? inputSub2ApiReauthEmailSuffix.value
@@ -11392,6 +11400,9 @@ function applySettingsState(state) {
   if (typeof inputSub2ApiReauthMode !== 'undefined' && inputSub2ApiReauthMode) {
     inputSub2ApiReauthMode.checked = Boolean(state?.sub2apiReauthMode);
   }
+  if (typeof inputSub2ApiReauthRestoreAccount !== 'undefined' && inputSub2ApiReauthRestoreAccount) {
+    inputSub2ApiReauthRestoreAccount.checked = Boolean(state?.sub2apiReauthRestoreAccountEnabled);
+  }
   if (typeof inputSub2ApiReauthEmailSuffix !== 'undefined' && inputSub2ApiReauthEmailSuffix) {
     inputSub2ApiReauthEmailSuffix.value = String(state?.sub2apiReauthEmailSuffix || '').trim().toLowerCase();
   }
@@ -15375,6 +15386,11 @@ async function startAutoRunFromCurrentSettings() {
       activeFlowId,
       targetId,
       sub2apiReauthMode: true,
+      sub2apiReauthRestoreAccountEnabled: Boolean(
+        typeof inputSub2ApiReauthRestoreAccount !== 'undefined' && inputSub2ApiReauthRestoreAccount
+          ? inputSub2ApiReauthRestoreAccount.checked
+          : latestState?.sub2apiReauthRestoreAccountEnabled
+      ),
       sub2apiReauthEmailSuffix: String(
         typeof inputSub2ApiReauthEmailSuffix !== 'undefined' && inputSub2ApiReauthEmailSuffix
           ? inputSub2ApiReauthEmailSuffix.value
@@ -15693,10 +15709,11 @@ inputSub2ApiReauthMode?.addEventListener('change', () => {
   inputSub2ApiUrl,
   inputSub2ApiEmail,
   inputSub2ApiPassword,
+  inputSub2ApiReauthRestoreAccount,
   inputSub2ApiReauthEmailSuffix,
   inputSub2ApiReauthSkipEmails,
 ].forEach((input) => {
-  input?.addEventListener('input', () => {
+  input?.addEventListener(input.type === 'checkbox' ? 'change' : 'input', () => {
     markSettingsDirty(true);
     scheduleSettingsAutoSave();
   });
@@ -17833,6 +17850,13 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
       ) {
         inputSub2ApiReauthMode.checked = Boolean(message.payload.sub2apiReauthMode);
         syncStepDefinitionsFromUiState({ sub2apiReauthMode: Boolean(message.payload.sub2apiReauthMode) });
+      }
+      if (
+        message.payload.sub2apiReauthRestoreAccountEnabled !== undefined
+        && typeof inputSub2ApiReauthRestoreAccount !== 'undefined'
+        && inputSub2ApiReauthRestoreAccount
+      ) {
+        inputSub2ApiReauthRestoreAccount.checked = Boolean(message.payload.sub2apiReauthRestoreAccountEnabled);
       }
       if (
         message.payload.sub2apiReauthSkipEmails !== undefined

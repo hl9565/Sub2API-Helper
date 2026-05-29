@@ -213,6 +213,19 @@ return {
 
 {
   const api = createApi({
+    pathname: '/phone-otp/select-channel',
+    href: 'https://auth.openai.com/phone-otp/select-channel',
+    pageText: '验证您的手机号码 选择接收验证码的方式 WhatsApp 短信 继续',
+  });
+
+  assert.strictEqual(api.isPhoneVerificationPageReady(), true);
+
+  const snapshot = api.inspectLoginAuthState();
+  assert.strictEqual(snapshot.state, 'phone_verification_page');
+}
+
+{
+  const api = createApi({
     pathname: '/contact-verification',
     href: 'https://auth.openai.com/contact-verification',
     verificationTarget: { id: 'otp' },

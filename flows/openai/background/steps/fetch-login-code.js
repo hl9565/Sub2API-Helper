@@ -340,6 +340,10 @@
     }
 
     async function completeStep8WhenDeferredToPostLoginPhone(visibleStep, pageState = {}, options = {}) {
+      if (options.sub2apiReauthMode) {
+        const stateLabel = pageState?.state === 'phone_verification_page' ? '手机验证码页' : '添加手机号页';
+        throw new Error(`SUB2API 重新授权失败：OpenAI 要求${stateLabel}，当前账号需要人工处理或重新授权。URL: ${pageState?.url || ''}`.trim());
+      }
       await setState({
         step8VerificationTargetEmail: '',
         loginVerificationRequestedAt: null,
@@ -861,7 +865,10 @@
       }
 
       if (pageState?.state === 'add_phone_page' || pageState?.state === 'phone_verification_page') {
-        await completeStep8WhenDeferredToPostLoginPhone(visibleStep, pageState, { nodeId: state?.nodeId });
+        await completeStep8WhenDeferredToPostLoginPhone(visibleStep, pageState, {
+          nodeId: state?.nodeId,
+          sub2apiReauthMode: Boolean(state?.sub2apiReauthMode),
+        });
         return;
       }
       if (pageState?.state === 'add_email_page') {

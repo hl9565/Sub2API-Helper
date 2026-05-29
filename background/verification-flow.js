@@ -623,8 +623,19 @@
       }
     }
 
-    async function closeIcloudMailboxTabAfterSuccess(step, mail) {
-      if (mail?.source !== 'icloud-mail') {
+    function shouldCloseMailboxTabAfterSuccess(mail = {}) {
+      return [
+        'gmail-mail',
+        'icloud-mail',
+        'qq-mail',
+        'mail-163',
+        'inbucket-mail',
+        'mail-2925',
+      ].includes(String(mail?.source || '').trim());
+    }
+
+    async function closeMailboxTabAfterSuccess(step, mail) {
+      if (!shouldCloseMailboxTabAfterSuccess(mail)) {
         return;
       }
 
@@ -634,7 +645,7 @@
 
       if (Number.isInteger(tabId)) {
         await chrome.tabs.remove(tabId).catch(() => {});
-        await addLog(`步骤 ${step}：已关闭 iCloud 邮箱标签页，避免长期累积。`, 'info');
+        await addLog(`步骤 ${step}：已关闭 ${mail.label || '邮箱'}标签页，避免长期累积。`, 'info');
         return;
       }
 
@@ -644,14 +655,14 @@
     }
 
     function triggerPostSuccessMailboxCleanup(step, mail) {
-      if (mail?.provider !== '2925' && mail?.source !== 'icloud-mail') {
+      if (mail?.provider !== '2925' && !shouldCloseMailboxTabAfterSuccess(mail)) {
         return;
       }
 
       Promise.resolve().then(async () => {
         try {
-          if (mail?.source === 'icloud-mail') {
-            await closeIcloudMailboxTabAfterSuccess(step, mail);
+          if (shouldCloseMailboxTabAfterSuccess(mail)) {
+            await closeMailboxTabAfterSuccess(step, mail);
             return;
           }
 
@@ -1322,7 +1333,8 @@
         return nextFilterAfterTimestamp;
       };
 
-      await clear2925MailboxBeforePolling(step, mail, options);
+      try {
+        await clear2925MailboxBeforePolling(step, mail, options);
 
       if (requestFreshCodeFirst) {
         if (remainingAutomaticResendCount <= 0) {
@@ -1440,13 +1452,15 @@
               ? { skipProfileStepReason: submitResult.skipProfileStepReason }
               : {}),
           });
-          triggerPostSuccessMailboxCleanup(step, mail);
           return {
             phoneVerificationRequired: Boolean(submitResult.addPhonePage),
             url: submitResult.url || '',
           };
         }
+      } finally {
+        triggerPostSuccessMailboxCleanup(step, mail);
       }
+    }
 
       return {
         confirmCustomVerificationStepBypass,

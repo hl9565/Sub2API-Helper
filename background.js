@@ -1309,6 +1309,7 @@ const PERSISTED_SETTING_DEFAULTS = {
   sub2apiAccountPriority: DEFAULT_SUB2API_ACCOUNT_PRIORITY,
   sub2apiDefaultProxyName: DEFAULT_SUB2API_PROXY_NAME,
   sub2apiReauthMode: false,
+  sub2apiReauthRestoreAccountEnabled: false,
   sub2apiReauthEmailSuffix: '',
   sub2apiReauthSkipEmails: [],
   sub2apiReauthPageSize: 50,
@@ -1499,6 +1500,7 @@ const SETTINGS_SCHEMA_VIEW_KEYS = Object.freeze([
   'sub2apiAccountPriority',
   'sub2apiDefaultProxyName',
   'sub2apiReauthMode',
+  'sub2apiReauthRestoreAccountEnabled',
   'sub2apiReauthEmailSuffix',
   'sub2apiReauthSkipEmails',
   'sub2apiReauthPageSize',
@@ -3193,6 +3195,8 @@ function normalizePersistentSettingValue(key, value) {
       return String(value || '').trim();
     case 'sub2apiReauthMode':
       return Boolean(value);
+    case 'sub2apiReauthRestoreAccountEnabled':
+      return Boolean(value);
     case 'sub2apiReauthEmailSuffix':
       return String(value || '').trim().toLowerCase();
     case 'sub2apiReauthSkipEmails':
@@ -3837,6 +3841,7 @@ function buildSettingsStatePatchFromFlatUpdates(updates = {}) {
   assignIfUpdated('sub2apiAccountPriority', ['flows', 'openai', 'targets', 'sub2api', 'sub2apiAccountPriority']);
   assignIfUpdated('sub2apiDefaultProxyName', ['flows', 'openai', 'targets', 'sub2api', 'sub2apiDefaultProxyName']);
   assignIfUpdated('sub2apiReauthMode', ['flows', 'openai', 'targets', 'sub2api', 'sub2apiReauthMode']);
+  assignIfUpdated('sub2apiReauthRestoreAccountEnabled', ['flows', 'openai', 'targets', 'sub2api', 'sub2apiReauthRestoreAccountEnabled']);
   assignIfUpdated('sub2apiReauthEmailSuffix', ['flows', 'openai', 'targets', 'sub2api', 'sub2apiReauthEmailSuffix']);
   assignIfUpdated('sub2apiReauthSkipEmails', ['flows', 'openai', 'targets', 'sub2api', 'sub2apiReauthSkipEmails']);
   assignIfUpdated('sub2apiReauthPageSize', ['flows', 'openai', 'targets', 'sub2api', 'sub2apiReauthPageSize']);
@@ -10835,6 +10840,7 @@ async function handleStepData(step, payload) {
       if (payload.sub2apiDraftName !== undefined) updates.sub2apiDraftName = payload.sub2apiDraftName || null;
       if (payload.sub2apiProxyId !== undefined) updates.sub2apiProxyId = payload.sub2apiProxyId || null;
       if (payload.sub2apiReauthMode !== undefined) updates.sub2apiReauthMode = Boolean(payload.sub2apiReauthMode);
+      if (payload.sub2apiReauthRestoreAccountEnabled !== undefined) updates.sub2apiReauthRestoreAccountEnabled = Boolean(payload.sub2apiReauthRestoreAccountEnabled);
       if (payload.sub2apiReauthEmailSuffix !== undefined) updates.sub2apiReauthEmailSuffix = String(payload.sub2apiReauthEmailSuffix || '').trim().toLowerCase();
       if (payload.sub2apiReauthSkipEmails !== undefined) updates.sub2apiReauthSkipEmails = normalizeEmailListSetting(payload.sub2apiReauthSkipEmails);
       if (payload.sub2apiReauthAccountId !== undefined) updates.sub2apiReauthAccountId = payload.sub2apiReauthAccountId || null;

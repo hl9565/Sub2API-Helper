@@ -213,6 +213,18 @@
           </label>
         </div>
       </div>
+      <div class="data-row" id="row-sub2api-reauth-restore-account">
+        <span class="data-label">成功后启用</span>
+        <div class="data-inline setting-pair">
+          <label class="toggle-switch" for="input-sub2api-reauth-restore-account" title="开启后，重新授权成功会把 SUB2API 账号状态设为正常，并开启调度；不开启时只写回新的 OAuth 授权信息，账号仍是暂停状态，调度开关仍是关闭，需要你在 SUB2API 手动启用。">
+            <input type="checkbox" id="input-sub2api-reauth-restore-account" />
+            <span class="toggle-switch-track" aria-hidden="true">
+              <span class="toggle-switch-thumb"></span>
+            </span>
+            <span>状态正常 + 调度开启</span>
+          </label>
+        </div>
+      </div>
       <div class="data-row" id="row-sub2api-reauth-email-suffix">
         <span class="data-label">账号后缀</span>
         <input type="text" id="input-sub2api-reauth-email-suffix" class="data-input"

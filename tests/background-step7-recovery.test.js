@@ -263,6 +263,72 @@ test('step 8 routes only a real phone verification page through sms helper', asy
   ]);
 });
 
+test('Sub2API reauth treats phone verification page as failed instead of deferring to sms helper', async () => {
+  const calls = {
+    completions: [],
+    helperCalls: [],
+  };
+
+  const executor = api.createStep8Executor({
+    addLog: async () => {},
+    chrome: {
+      tabs: {
+        update: async () => {},
+      },
+    },
+    completeNodeFromBackground: async (step, payload) => {
+      calls.completions.push({ step, payload });
+    },
+    confirmCustomVerificationStepBypass: async () => {},
+    ensureStep8VerificationPageReady: async () => ({
+      state: 'phone_verification_page',
+      phoneVerificationPage: true,
+      url: 'https://auth.openai.com/phone-verification',
+    }),
+    getOAuthFlowRemainingMs: async () => 5000,
+    getOAuthFlowStepTimeoutMs: async (defaultTimeoutMs) => defaultTimeoutMs,
+    getMailConfig: () => {
+      throw new Error('sub2api phone verification failure should not poll email');
+    },
+    getState: async () => ({}),
+    getTabId: async () => 1,
+    HOTMAIL_PROVIDER: 'hotmail-api',
+    isTabAlive: async () => true,
+    isVerificationMailPollingError: () => false,
+    LUCKMAIL_PROVIDER: 'luckmail-api',
+    phoneVerificationHelpers: {
+      completeLoginPhoneVerificationFlow: async () => {
+        calls.helperCalls.push(true);
+        throw new Error('sub2api reauth should not use sms helper');
+      },
+    },
+    resolveVerificationStep: async () => {
+      throw new Error('sub2api phone verification failure should not use email verification flow');
+    },
+    rerunStep7ForStep8Recovery: async () => {
+      throw new Error('sub2api phone verification failure should not rerun step 7');
+    },
+    reuseOrCreateTab: async () => {},
+    setState: async () => {},
+    shouldUseCustomRegistrationEmail: () => false,
+    STANDARD_MAIL_VERIFICATION_RESEND_INTERVAL_MS: 25000,
+    STEP7_MAIL_POLLING_RECOVERY_MAX_ATTEMPTS: 8,
+    throwIfStopped: () => {},
+  });
+
+  await assert.rejects(
+    () => executor.executeStep8({
+      visibleStep: 8,
+      sub2apiReauthMode: true,
+      oauthUrl: 'https://oauth.example/latest',
+    }),
+    /SUB2API 重新授权失败：OpenAI 要求手机验证码页/
+  );
+
+  assert.deepStrictEqual(calls.completions, []);
+  assert.deepStrictEqual(calls.helperCalls, []);
+});
+
 test('post-login phone verification completes only on phone pages', async () => {
   const calls = {
     helperCalls: [],
